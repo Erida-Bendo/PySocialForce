@@ -19,7 +19,7 @@ from pysocialforce.ped_grouping import PedestrianStates, PedestrianGroupings
 from pysocialforce.config import SimulatorConfig
 from pysocialforce.scene import PedState, EnvState
 from pysocialforce import forces
-from pysocialforce.ped_population import populate_simulation
+from pysocialforce.ped_population import populate_simulation, populate_simulation_from_file
 
 
 Line2D = Tuple[float, float, float, float]
@@ -44,7 +44,7 @@ def make_forces(sim: pysf.Simulator, config: SimulatorConfig) -> List[pysf.force
     ]
     return force_list + group_forces if enable_group else force_list
 
-
+#EB changed populate_simulation to my function
 class Simulator_v2:
     def __init__(
             self,
@@ -52,9 +52,9 @@ class Simulator_v2:
             config: SimulatorConfig=SimulatorConfig(),
             make_forces: Callable[[Simulator, SimulatorConfig], List[forces.Force]]=make_forces,
             populate: SimPopulator=lambda s, m: \
-            populate_simulation(
+            populate_simulation_from_file(
                 s.scene_config.tau, s.ped_spawn_config,
-                m.routes, m.crowded_zones),
+                m.routes, m.crowded_zones, "../maps/peds.json", "../maps/GHMap.json"),
             on_step: Callable[[int, SimState], None] = lambda t, s: None):
         """
         Initializes a Simulator_v2 object.

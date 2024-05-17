@@ -3,7 +3,7 @@
 """
 import pysocialforce as pysf
 
-map_def = pysf.load_map("./maps/default_map.json")
+map_def = pysf.load_map("default_map.json")
 simulator = pysf.Simulator_v2(map_def)
 
 for step in range(10):

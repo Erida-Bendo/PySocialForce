@@ -2,11 +2,13 @@ from math import dist, atan2, sin, cos, ceil
 from dataclasses import dataclass, field
 from typing import Tuple, List, Set, Dict
 import numpy as np
+import json
 
 from pysocialforce.map_config import GlobalRoute, sample_zone
 from pysocialforce.ped_grouping import PedestrianStates, PedestrianGroupings
 from pysocialforce.ped_behavior import \
     PedestrianBehavior, CrowdedZoneBehavior, FollowRouteBehavior
+from pysocialforce.map_loader import load_map
 
 PedState = np.ndarray
 PedGrouping = Set[int]
@@ -132,6 +134,29 @@ class RoutePointsGenerator:
         spawn_pos, sec_id = sample_group_spawn_on_route(self.routes[route_id], num_samples, self.sidewalk_width)
         return spawn_pos, route_id, sec_id
 
+@dataclass
+class StartingPointGenerator:
+    routes: List[GlobalRoute]
+    sidewalk_width: float
+    _route_probs: List[float] = field(init=False)
+
+    def __post_init__(self):
+        # info: distribute proportionally by zone area; area ~ route length * sidewalk width
+        self._zone_probs = [r.total_length / self.total_length for r in self.routes]
+
+    @property
+    def total_length(self) -> float:
+        return sum([r.total_length for r in self.routes])
+
+    @property
+    def total_sidewalks_area(self) -> float:
+        return self.total_length * self.sidewalk_width
+
+    def generate(self, num_samples: int) -> Tuple[List[Vec2D], int, int]:
+        route_id = np.random.choice(len(self.routes), size=1, p=self._zone_probs)[0]
+        spawn_pos, sec_id = sample_group_spawn_on_route(self.routes[route_id], num_samples, self.sidewalk_width)
+        return spawn_pos, route_id, sec_id
+
 
 def populate_ped_routes(config: PedSpawnConfig, routes: List[GlobalRoute]) \
         -> Tuple[np.ndarray, List[PedGrouping], Dict[int, GlobalRoute], List[int]]:
@@ -178,6 +203,38 @@ def populate_ped_routes(config: PedSpawnConfig, routes: List[GlobalRoute]) \
         ped_states[ped_ids, 4:6] = group_goal
 
         num_unassigned_peds -= num_peds_in_group
+
+    return ped_states, groups, route_assignments, initial_sections
+
+#TO DO EB
+def populate_from_file(peds:str, maps:str) \
+        -> Tuple[np.ndarray, List[PedGrouping], Dict[int, GlobalRoute], List[int]]:
+    with open(peds, 'r') as file:
+        peds_json = json.load(file)
+    map=load_map(maps)
+    #set one goal for all points for now
+    goal=map.routes[0].waypoints[3]
+
+    ped_states = np.zeros((len(peds_json), 6))
+    points = [[point["x"],point["y"]] for point in peds_json]
+
+    #for now every point has the same velocity, default the velocity is calculated from each groups centerpoint
+    rot = atan2(goal[1] - points[0][1], goal[0] - points[0][0])
+    velocity = np.array([cos(rot), sin(rot)]) * 0.7
+    #create groups of 5 points
+    ped_states[:,0:2] = points
+    ped_states[:,2:4] = velocity
+    ped_states[:,4:6] = goal
+    # create groups of 5 points
+    elementNo = 5
+    groups = [list(range(start, start + elementNo)) for start in range(0, len(points), elementNo)]
+    route_assignments = dict()
+    #not sure about route_id, for now giving the same value to all
+    route_id = 0
+    for i in range(len(groups)):
+        route_assignments[i] = map.routes[route_id]
+    #same for sec_id, refers to segment part in chosen route, for now first segment of the chosen route
+    initial_sections = [0 for group in groups]
 
     return ped_states, groups, route_assignments, initial_sections
 
@@ -250,6 +307,59 @@ def populate_simulation(
         populate_crowded_zones(spawn_config, ped_crowded_zones)
     route_ped_states_np, route_groups, route_assignments, initial_sections = \
         populate_ped_routes(spawn_config, ped_routes)
+
+    #EB get  route_ped_states_np, route_groups, route_assignments, initial_sections from grasshopper in a new function
+
+    combined_ped_states_np = np.concatenate((crowd_ped_states_np, route_ped_states_np))
+    taus = np.full((combined_ped_states_np.shape[0]), tau)
+    ped_states = np.concatenate((combined_ped_states_np, np.expand_dims(taus, -1)), axis=-1)
+    id_offset = crowd_ped_states_np.shape[0]
+    combined_groups = crowd_groups + [{id + id_offset for id in peds} for peds in route_groups]
+
+    pysf_state = PedestrianStates(ped_states)
+    crowd_pysf_state = PedestrianStates(ped_states[:id_offset])
+    route_pysf_state = PedestrianStates(ped_states[id_offset:])
+
+    groups = PedestrianGroupings(pysf_state)
+    for ped_ids in combined_groups:
+        groups.new_group(ped_ids)
+    crowd_groupings = PedestrianGroupings(crowd_pysf_state)
+    for ped_ids in crowd_groups:
+        crowd_groupings.new_group(ped_ids)
+    route_groupings = PedestrianGroupings(route_pysf_state)
+    for ped_ids in route_groups:
+        route_groupings.new_group(ped_ids)
+
+    crowd_behavior = CrowdedZoneBehavior(crowd_groupings, zone_assignments, ped_crowded_zones)
+    route_behavior = FollowRouteBehavior(route_groupings, route_assignments, initial_sections)
+    ped_behaviors: List[PedestrianBehavior] = [crowd_behavior, route_behavior]
+    return pysf_state, groups, ped_behaviors
+
+#EB
+def populate_simulation_from_file(
+        tau: float, spawn_config: PedSpawnConfig,
+        ped_routes: List[GlobalRoute], ped_crowded_zones: List[Zone], peds:str, maps:str
+    ) -> Tuple[PedestrianStates, PedestrianGroupings, List[PedestrianBehavior]]:
+    """
+    Populates the simulation with pedestrians based on the given parameters.
+
+    Args:
+        tau (float): The time step for the simulation.
+        spawn_config (PedSpawnConfig): The configuration for spawning pedestrians.
+        ped_routes (List[GlobalRoute]): The global routes for the pedestrians.
+        ped_crowded_zones (List[Zone]): The crowded zones for the pedestrians.
+
+    Returns:
+        Tuple[PedestrianStates, PedestrianGroupings, List[PedestrianBehavior]]: A tuple containing the pedestrian states,
+        pedestrian groupings, and pedestrian behaviors for the simulation.
+    """
+
+    crowd_ped_states_np, crowd_groups, zone_assignments = \
+        populate_crowded_zones(spawn_config, ped_crowded_zones)
+    route_ped_states_np, route_groups, route_assignments, initial_sections = \
+        populate_from_file(peds, maps)
+
+    #EB get  route_ped_states_np, route_groups, route_assignments, initial_sections from grasshopper in a new function
 
     combined_ped_states_np = np.concatenate((crowd_ped_states_np, route_ped_states_np))
     taus = np.full((combined_ped_states_np.shape[0]), tau)

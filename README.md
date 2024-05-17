@@ -10,32 +10,6 @@ of pedestrians with social group interactions.
 The pedestrian states and other simulated entities are represented by NumPy arrays.
 Performance-critical implementations of forces use Numba for significant speed-ups.
 
-## Installation
-
-Clone the source code.
-
-```sh
-git clone https://github.com/Bonifatius94/PySocialForce.git
-```
-
-Install the pysocialforce package and its dependencies using pip + setup.py.
-
-```sh
-pip install -e .
-```
-
-For development, run the automated tests and lint the coding style.
-
-```sh
-pylint pysocialforce
-pytest tests
-```
-
-## Usage
-See the usage examples in the [examples](./examples/) folder.
-
-## License
-This project is available under the MIT License.
 
 ## References
 

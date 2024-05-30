@@ -54,7 +54,7 @@ class Simulator_v2:
             populate: SimPopulator=lambda s, m: \
             populate_simulation_from_file(
                 s.scene_config.tau, s.ped_spawn_config,
-                m.routes, m.crowded_zones, "../maps/peds.json", "../maps/GHMap.json"),
+                m.routes, m.crowded_zones, "../maps/peds.json", "../maps/GHMap.json", 1),
             on_step: Callable[[int, SimState], None] = lambda t, s: None):
         """
         Initializes a Simulator_v2 object.

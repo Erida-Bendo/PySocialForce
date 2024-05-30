@@ -206,8 +206,8 @@ def populate_ped_routes(config: PedSpawnConfig, routes: List[GlobalRoute]) \
 
     return ped_states, groups, route_assignments, initial_sections
 
-#TO DO EB
-def populate_from_file(peds:str, maps:str) \
+# EB
+def populate_from_file(peds:str, maps:str, groupno) \
         -> Tuple[np.ndarray, List[PedGrouping], Dict[int, GlobalRoute], List[int]]:
     with open(peds, 'r') as file:
         peds_json = json.load(file)
@@ -226,7 +226,7 @@ def populate_from_file(peds:str, maps:str) \
     ped_states[:,2:4] = velocity
     ped_states[:,4:6] = goal
     # create groups of 5 points
-    elementNo = 5
+    elementNo = groupno
     groups = [list(range(start, start + elementNo)) for start in range(0, len(points), elementNo)]
     route_assignments = dict()
     #not sure about route_id, for now giving the same value to all
@@ -338,7 +338,7 @@ def populate_simulation(
 #EB
 def populate_simulation_from_file(
         tau: float, spawn_config: PedSpawnConfig,
-        ped_routes: List[GlobalRoute], ped_crowded_zones: List[Zone], peds:str, maps:str
+        ped_routes: List[GlobalRoute], ped_crowded_zones: List[Zone], peds:str, maps:str, groupno:int
     ) -> Tuple[PedestrianStates, PedestrianGroupings, List[PedestrianBehavior]]:
     """
     Populates the simulation with pedestrians based on the given parameters.
@@ -357,7 +357,7 @@ def populate_simulation_from_file(
     crowd_ped_states_np, crowd_groups, zone_assignments = \
         populate_crowded_zones(spawn_config, ped_crowded_zones)
     route_ped_states_np, route_groups, route_assignments, initial_sections = \
-        populate_from_file(peds, maps)
+        populate_from_file(peds, maps, groupno)
 
     #EB get  route_ped_states_np, route_groups, route_assignments, initial_sections from grasshopper in a new function
 

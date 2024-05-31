@@ -3,7 +3,7 @@
 [](https://github.com/Bonifatius94/PySocialForce/actions/workflows/ci.yml/badge.svg)
 
 ## About
-This project is a Python implementation of the **Extended Social Force Model** [[2]](#2).
+This project is a adaptation of the Python implementation of the **Extended Social Force Model** [[2]](#2) for Grasshopper.
 It extends the vanilla social force model [[1]](#1) to simulate the walking behaviour
 of pedestrians with social group interactions.
 

@@ -32,15 +32,15 @@ class GroupGazeForceConfig:
 
 @dataclass
 class DesiredForceConfig:
-    factor: float = 1.0
+    factor: float = 5
     relaxation_time: float = 0.5
     goal_threshold: float = 0.2
 
 
 @dataclass
 class SocialForceConfig:
-    factor: float = 5.1
-    lambda_importance: float = 2.0
+    factor: float = 100
+    lambda_importance: float = 5
     gamma: float = 0.35
     n: int = 2
     n_prime: int = 3
@@ -49,7 +49,7 @@ class SocialForceConfig:
 
 @dataclass
 class ObstacleForceConfig:
-    factor: float = 10.0
+    factor: float = 50
     sigma: float = 0.0
     threshold: float = -0.57
 

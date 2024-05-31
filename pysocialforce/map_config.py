@@ -86,7 +86,7 @@ class GlobalRoute:
     Represents a global route from a spawn point to a goal point in a map.
     """
     waypoints: List[Vec2D]
-    spawn_radius: float = 5.0
+    spawn_radius: float = 5
 
     def __post_init__(self):
         """

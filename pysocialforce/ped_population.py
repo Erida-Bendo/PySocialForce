@@ -213,7 +213,7 @@ def populate_from_file(peds:str, maps:str, groupno) \
         peds_json = json.load(file)
     map=load_map(maps)
     #set one goal for all points for now
-    goal=map.routes[0].waypoints[3]
+    goal=map.routes[0].waypoints[1]
 
     ped_states = np.zeros((len(peds_json), 6))
     points = [[point["x"],point["y"]] for point in peds_json]

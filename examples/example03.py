@@ -4,11 +4,11 @@
 
 import pysocialforce as pysf
 
-
 map_def = pysf.load_map("../maps/GHMap.json")
 display = pysf.SimulationView(obstacles=map_def.obstacles, scaling=4)
 render_step = lambda t, s: display.render(pysf.to_visualizable_state(t, s))
 simulator = pysf.Simulator_v2(map_def, on_step=render_step)
+
 """
 #Assign force factors - overwrites the config.py file
 #general

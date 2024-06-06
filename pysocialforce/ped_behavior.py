@@ -104,7 +104,7 @@ class FollowRouteBehavior:
             group_pos = self.groups.group_centroid(gid)
             nav.update_position(group_pos)
             if nav.reached_destination:
-                self.respawn_group_at_start(gid)
+                self.freeze(gid)
             elif nav.reached_waypoint:
                 self.groups.redirect_group(gid, nav.current_waypoint)
 
@@ -113,6 +113,16 @@ class FollowRouteBehavior:
         TODO: why does the reset method do nothing?
         """
         pass
+
+    def freeze(self, gid:int):
+        """
+                Freezes group at destination.
+
+                Args:
+                    gid (int): The group ID.
+                """
+        nav = self.navigators[gid]
+        nav.waypoint_id = -1
 
     def respawn_group_at_start(self, gid: int):
         """

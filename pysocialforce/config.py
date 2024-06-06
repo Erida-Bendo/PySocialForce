@@ -6,7 +6,7 @@ from pysocialforce.ped_population import PedSpawnConfig
 @dataclass
 class SceneConfig:
     enable_group: bool = True
-    agent_radius: float = 0.35
+    agent_radius: float = 100
     dt_secs: float = 0.1
     max_speed_multiplier: float = 1.3
     tau: float = 0.5
@@ -20,7 +20,7 @@ class GroupCoherenceForceConfig:
 
 @dataclass
 class GroupReplusiveForceConfig:
-    factor: float = 1.0
+    factor: float = 80
     threshold: float = 0.55
 
 
@@ -39,7 +39,7 @@ class DesiredForceConfig:
 
 @dataclass
 class SocialForceConfig:
-    factor: float = 100
+    factor: float = 80
     lambda_importance: float = 5
     gamma: float = 0.35
     n: int = 2

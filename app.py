@@ -30,7 +30,7 @@ def simulate(steps, toggle):
         positions= simulateHops.simulate(steps)
     else:
         positions.append(rg.Point3d(0,0,0))
-    
+
     return positions
 
 if __name__== "__main__":

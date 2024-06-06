@@ -20,7 +20,7 @@ from pysocialforce.config import SimulatorConfig
 from pysocialforce.scene import PedState, EnvState
 from pysocialforce import forces
 from pysocialforce.ped_population import populate_simulation, populate_simulation_from_file
-
+from pysocialforce.map_loader import load_map
 
 Line2D = Tuple[float, float, float, float]
 SimState = Tuple[np.ndarray, List[List[int]]]
@@ -146,10 +146,14 @@ class Simulator_v2:
         Returns:
             Simulator_v2: The Simulator_v2 object.
         """
+        map = load_map("./maps/GHMap.json")
         for _ in range(n):
             self._step_once()
             self.on_step(self.t, self.current_state)
             self.t += 1
+            obst = [line for o in map.obstacles for line in o.lines]
+            self.env = EnvState(obst, self.config.scene_config.resolution)
+
 
 
 class Simulator:

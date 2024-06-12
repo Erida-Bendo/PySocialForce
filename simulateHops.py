@@ -1,7 +1,7 @@
 import pysocialforce as pysf
 import rhino3dm as rg
 
-def simulate(steps):
+def simulate(steps, margin):
     map_def = pysf.load_map("./maps/GHMap.json")
     simulator = pysf.Simulator_v2(map_def)
     """
@@ -29,7 +29,7 @@ def simulate(steps):
     for step in range(steps):
         simulator.step()
         for point in simulator.states.ped_positions:
-            pt= rg.Point3d(point[0], 200-point[1], 0)
+            pt= rg.Point3d(point[0], margin-point[1], 0)
             positions.append(pt)
 
     return positions

@@ -16,18 +16,19 @@ hops = hs.Hops(app)
     description ="Simulate Pedestrian Movement according to the Social Force Model by Helbing and Molnar",
     inputs=[
         hs.HopsInteger("Step", "No", "Number of Simulation Steps"),
-        hs.HopsBoolean("Simulate", "Sim", "Simulate Pedestrian Movement", hs.HopsParamAccess.ITEM, False)
+        hs.HopsBoolean("Simulate", "Sim", "Simulate Pedestrian Movement", hs.HopsParamAccess.ITEM, False),
+        hs.HopsInteger("margin", "M", "Boundary Margin", hs.HopsParamAccess.ITEM)
     ],
     outputs=[
         hs.HopsPoint("Positions", "Pos", "Positions of Pedestrians per Step", hs.HopsParamAccess.TREE)
     ]
 )
 
-def simulate(steps, toggle):
+def simulate(steps, toggle, margin):
     positions=[]
 
     if(toggle==True):
-        positions= simulateHops.simulate(steps)
+        positions= simulateHops.simulate(steps, margin)
     else:
         positions.append(rg.Point3d(0,0,0))
 
